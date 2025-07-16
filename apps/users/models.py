@@ -12,7 +12,7 @@ class User(models.Model):
     username = fields.CharField(max_length=255, unique=True, description='账号')
     nickname = fields.CharField(max_length=255, index=True, description='昵称')
     password = fields.CharField(max_length=255, description='密码')
-    openid = fields.CharField(max_length=255, unique=True, description='OpenID')
+    openid = fields.CharField(max_length=255, unique=True, description='OpenID') # 与微信ID挂钩
     mobile = fields.CharField(max_length=15, index=True, description='手机')
     avatar = fields.CharField(max_length=500, null=True, description='头像')
     country = fields.CharField(max_length=255, null=True, description='国家')

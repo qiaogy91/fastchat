@@ -4,62 +4,86 @@
 # @Author  ：qiaogy
 # @Email   ：qiaogy@example.com
 # @Date    ：2025/7/16 12:10
+from functools import lru_cache
 from pydantic import Field
 from pydantic_settings import BaseSettings
-
 
 
 class DBSettings(BaseSettings):
     addr: str = Field(..., description="数据库地址")
     port: int = Field(..., description="数据库端口")
-    user: str = Field(..., description="数据库用户")
-
-    class Config:
-        env_prefix = "DB_"  # 对应 .env 中的 DB_ 开头
+    username: str = Field(..., description="数据库用户")
+    password: str = Field(..., description="数据库密码")
+    database: str = Field(..., description="数据库名称")
+    chatset: str = Field(..., description="字符集")
+    pool_minsize: int = Field(..., description="连接池中最小链接的数量")
+    pool_maxsize: int = Field(..., description="连接池中最大链接的数量")
+    echo: bool = Field(..., description="执行数据库操作时，是否打印SQL语句")
 
 
 class ServerSettings(BaseSettings):
+    env: str = Field(..., description="当前开发环境")
+    name: str = Field(..., description="当前系统名称")
     addr: str = Field(..., description="服务器监听地址")
     port: int = Field(..., description="服务器端口")
+    debug: bool = Field(..., description="是否开启调试")
+    timezone: str = Field(..., description="时区")
+    version: str = Field(..., description="当前系统版本")
 
-    class Config:
-        env_prefix = "APP_"
+
+class LoggerSettings(BaseSettings):
+    level: int = Field(..., description="日志级别")
+    root: str = Field(..., description="日志目录")
 
 
 class Settings(BaseSettings):
-    db: DBSettings = DBSettings()
-    server: ServerSettings = ServerSettings()
+    db: DBSettings
+    server: ServerSettings
+    logger: LoggerSettings
 
     class Config:
-        env_file = ".env"  # 指定 .env 文件路径
+        env_file = "etc/.env"  # Working Directory 目录，也就是运行 python main.py 时所在的目录
+        env_file_encoding = "utf-8"
+        env_nested_delimiter = "__"
 
 
+@lru_cache()
+def get_settings() -> Settings:
+    """
+    :return:  lru_cache 能让函数的返回值自动缓存，从而避免重复计算。是官方推荐的单例构建装饰器
+    """
+    return Settings()
 
 
-TORTOISE_ORM = {
-    "connections": {
-        "default": {
-            'engine': 'tortoise.backends.mysql',  # MySQL or Mariadb
-            'credentials': {
-                'host': os.environ.get('DB_HOST', '127.0.0.1'),
-                'port': int(os.environ.get('DB_PORT', 3306)),
-                'user': os.environ.get('DB_USER', 'root'),
-                'password': os.environ.get('DB_PASSWORD', '123'),
-                'database': os.environ.get('DB_DATABASE', 'fastchat'),
-                'charset': os.environ.get('DB_CHARSET', 'utf8mb4'),
-                'minsize': int(os.environ.get('DB_POOL_MINSIZE', 1)),  # 连接池中的最小连接数
-                'maxsize': int(os.environ.get('DB_POOL_MAXSIZE', 5)),  # 连接池中的最大连接数
-                "echo": bool(os.environ.get('DEBUG', True))  # 执行数据库操作时，是否打印SQL语句
+@lru_cache()
+def get_orm_settings() -> dict:
+    settings = get_settings()
+    return {
+        "connections": {
+            # 每个KV 代表一个数据库实例的链接方式
+            "default": {
+                'engine': 'tortoise.backends.mysql',  # MySQL or Mariadb
+                'credentials': {
+                    'host': settings.db.addr,
+                    'port': settings.db.port,
+                    'user': settings.db.username,
+                    'password': settings.db.password,
+                    'database': settings.db.database,
+                    'charset': settings.db.chatset,
+                    'minsize': settings.db.pool_minsize,
+                    'maxsize': settings.db.pool_maxsize,
+                    "echo": settings.db.echo,
+                }
             }
-        }
-    },
-    'apps': {  # 默认所在的应用目录
-        'models': {  # 数据模型的分组名
-            'models': [],  # 模型所在目录文件的导包路径[字符串格式]
-            'default_connection': 'default',  # 上一行配置中的模型列表的默认连接配置
-        }
-    },
-    # 时区设置，为False 时表示不要使用系统时区，要使用当前指定的时区
-    'use_tz': False,
-    'timezone': os.environ.get('APP_TIMEZONE', 'Asia/Shanghai')
-}
+        },
+        # 所有的模型目录
+        'apps': {
+            'models': {
+                'models': ['apps.users.models', 'aerich.models'],  # 模型结构所在的文件路径，从main.py 同级目录开始
+                'default_connection': 'default',  # 上一行配置中的模型列表的默认连接配置
+            }
+        },
+        # 时区设置，为False 时表示不要使用系统时区，要使用当前指定的时区
+        'use_tz': False,
+        'timezone': settings.server.timezone
+    }

@@ -1,27 +1,29 @@
 #!/usr/bin/env python
 # @Project ：fastchat 
-# @File    ：logger.py
+# @File    ：logs.py
 # @Author  ：qiaogy
 # @Email   ：qiaogy@example.com
 # @Date    ：2025/7/16 18:25
 import logging
 from logging import handlers, Logger
+from conf import SETTINGS
 
 
 def get_logger(name: str) -> Logger:
     """
     单例日志器对象，logging 模块内部维护了一个全局的 Logger 字典，多次调用 `logging.getLogger(name) ` 会返回同一个 Logger 实例
     """
+
     # 1. 实例化日志器对象
     logger: Logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(SETTINGS.logger.level)
 
     # 2. 设置输出目标
     if not logger.handlers:
         # 1. 创建handler
         th: logging.StreamHandler = logging.StreamHandler()
         rf: handlers.RotatingFileHandler = handlers.RotatingFileHandler(
-            filename=f"logs/{name}.log",
+            filename=f"{SETTINGS.logger.root}/{name}.log",
             mode='a',
             maxBytes=300 * 1024 * 1024,  # 300M
             backupCount=10,
@@ -33,7 +35,7 @@ def get_logger(name: str) -> Logger:
 
         # 3. 设置handler 输出格式
         simple_formatter = logging.Formatter(
-            fmt="{levelname:<8} {asctime} {filename:<20}|{lineno:>4} | {message}",
+            fmt="{levelname:<9} {asctime} {filename:<20}|{lineno:>4} | {message}",
             datefmt="%Y-%m-%d %H:%M:%S",  # 固定长度时间，便于对齐
             style="{",
         )
