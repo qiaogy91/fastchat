@@ -34,3 +34,10 @@
 【MyApp】INFO     2025-07-16 21:50:29 middleware.py       |  20 | path=/openapi.json timer=2.40ms status_code=200
 【MyApp】ERROR    2025-07-16 21:53:03 exception.py        |  41 | 发生异常：name 'xxxx' is not defined
 【MyApp】INFO     2025-07-16 21:53:03 middleware.py       |  20 | path=/users/ timer=0.98ms status_code=200
+【MyApp】INFO     2025-07-16 22:09:35 middleware.py       |  20 | path=/users timer=0.39ms status_code=307
+【MyApp】ERROR    2025-07-16 22:09:35 exception.py        |  41 | 发生异常：name 'xxxx' is not defined
+【MyApp】INFO     2025-07-16 22:09:35 middleware.py       |  20 | path=/users/ timer=0.91ms status_code=200
+【MyApp】ERROR    2025-07-16 22:24:12 exception.py        |  41 | 发生异常：name 'xxxx' is not defined
+【MyApp】INFO     2025-07-16 22:24:12 middleware.py       |  20 | path=/users/ timer=1.02ms status_code=200
+【MyApp】ERROR    2025-07-16 22:29:32 exception.py        |  41 | 发生异常：name 'xxxx' is not defined
+【MyApp】INFO     2025-07-16 22:29:32 middleware.py       |  20 | path=/users/ timer=1.31ms status_code=200

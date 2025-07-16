@@ -60,6 +60,11 @@ async def gloabl_request_exception_handler(request: Request, ex: RequestValidati
     })
 
 
+'''
+FastAPI 默认处理以下两种类型异常：
+1. HTTPException    业务逻辑中手动 raise HTTPException 触发
+2. RequestValidationError 请求体、参数校验失败时自动触发
+'''
 
 exception_handlers = {
     HTTPException: global_http_exception_handler,

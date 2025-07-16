@@ -8,6 +8,7 @@
 
 from fastapi import APIRouter, status
 from fastapi.exceptions import HTTPException
+from common.code import ErrorCode
 
 
 router: APIRouter = APIRouter()
@@ -18,5 +19,5 @@ async def get_user(name: str)-> dict:
     try:
         print(xxxx)
     except Exception as ex:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=ex.__str__())
+        raise HTTPException(status_code=ErrorCode.UnknownErr, detail=ex.__str__())
     return {"data": "get user test"}
